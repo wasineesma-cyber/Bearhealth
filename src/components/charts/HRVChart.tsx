@@ -10,10 +10,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { DailyMetric } from "@/lib/mockData";
+import { type Translations } from "@/lib/i18n";
 
 interface HRVChartProps {
   data: DailyMetric[];
   days?: number;
+  t?: Translations;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -30,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function HRVChart({ data, days = 14 }: HRVChartProps) {
+export default function HRVChart({ data, days = 14, t }: HRVChartProps) {
   const chartData = data.slice(-days).map((d) => ({
     date: new Date(d.date).toLocaleDateString("en", {
       month: "short",
@@ -46,8 +48,8 @@ export default function HRVChart({ data, days = 14 }: HRVChartProps) {
     <div className="bg-bear-card border border-bear-border rounded-2xl p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="font-semibold text-sm">Heart Rate Variability</h3>
-          <p className="text-bear-subtle text-xs mt-0.5">Last {days} days</p>
+          <h3 className="font-semibold text-sm">{t?.charts.hrv ?? "Heart Rate Variability"}</h3>
+          <p className="text-bear-subtle text-xs mt-0.5">{t?.charts.last14Days ?? `Last ${days} days`}</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-bear-recovery">{avg}</p>

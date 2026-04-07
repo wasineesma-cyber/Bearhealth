@@ -11,9 +11,11 @@ import {
   ReferenceLine,
 } from "recharts";
 import { HourlyHR } from "@/lib/mockData";
+import { type Translations } from "@/lib/i18n";
 
 interface HeartRateChartProps {
   data: HourlyHR[];
+  t?: Translations;
 }
 
 const zoneColors: Record<string, string> = {
@@ -44,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function HeartRateChart({ data }: HeartRateChartProps) {
+export default function HeartRateChart({ data, t }: HeartRateChartProps) {
   const max = Math.max(...data.map((d) => d.bpm));
   const avg = Math.round(data.reduce((s, d) => s + d.bpm, 0) / data.length);
 
@@ -52,8 +54,8 @@ export default function HeartRateChart({ data }: HeartRateChartProps) {
     <div className="bg-bear-card border border-bear-border rounded-2xl p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="font-semibold text-sm">Heart Rate Today</h3>
-          <p className="text-bear-subtle text-xs mt-0.5">24-hour overview</p>
+          <h3 className="font-semibold text-sm">{t?.charts.heartRateToday ?? "Heart Rate Today"}</h3>
+          <p className="text-bear-subtle text-xs mt-0.5">{t?.charts.overview24h ?? "24-hour overview"}</p>
         </div>
         <div className="flex gap-4">
           <div className="text-right">
@@ -108,7 +110,9 @@ export default function HeartRateChart({ data }: HeartRateChartProps) {
         {Object.entries(zoneColors).map(([zone, color]) => (
           <div key={zone} className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-xs text-bear-subtle capitalize">{zone}</span>
+            <span className="text-xs text-bear-subtle capitalize">
+              {t?.charts.zones[zone as keyof typeof t.charts.zones] ?? zone}
+            </span>
           </div>
         ))}
       </div>

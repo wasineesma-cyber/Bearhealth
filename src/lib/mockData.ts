@@ -266,10 +266,10 @@ export function getRecoveryColor(score: number): string {
   return "#ef4444";
 }
 
-export function getRecoveryLabel(score: number): string {
-  if (score >= 67) return "Optimal";
-  if (score >= 34) return "Moderate";
-  return "Low";
+export function getRecoveryLabel(score: number, t?: { recovery: { optimal: string; moderate: string; low: string } }): string {
+  if (score >= 67) return t?.recovery.optimal ?? "Optimal";
+  if (score >= 34) return t?.recovery.moderate ?? "Moderate";
+  return t?.recovery.low ?? "Low";
 }
 
 export function getStrainColor(strain: number): string {
@@ -279,9 +279,9 @@ export function getStrainColor(strain: number): string {
   return "#ef4444";
 }
 
-export function getStrainLabel(strain: number): string {
-  if (strain <= 7) return "Light";
-  if (strain <= 11) return "Moderate";
-  if (strain <= 15) return "High";
-  return "Extreme";
+export function getStrainLabel(strain: number, t?: { strain: { light: string; moderate: string; high: string; extreme: string } }): string {
+  if (strain <= 7) return t?.strain.light ?? "Light";
+  if (strain <= 11) return t?.strain.moderate ?? "Moderate";
+  if (strain <= 15) return t?.strain.high ?? "High";
+  return t?.strain.extreme ?? "Extreme";
 }

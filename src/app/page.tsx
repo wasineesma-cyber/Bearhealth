@@ -1,15 +1,16 @@
+"use client";
+
 import {
   Heart,
-  Zap,
-  Moon,
   Wind,
-  Droplets,
   Flame,
   Footprints,
-  Activity,
   TrendingUp,
   TrendingDown,
   Minus,
+  RefreshCw,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import MetricRing from "@/components/MetricRing";
 import StatCard from "@/components/StatCard";
@@ -26,6 +27,8 @@ import {
   getStrainColor,
   getStrainLabel,
 } from "@/lib/mockData";
+import { useGarminData } from "@/hooks/useGarminData";
+import { useLang } from "@/hooks/useLang";
 
 function TrendIcon({ value, prev }: { value: number; prev: number }) {
   const diff = value - prev;
@@ -35,26 +38,64 @@ function TrendIcon({ value, prev }: { value: number; prev: number }) {
 }
 
 export default function Dashboard() {
+  const { t, lang } = useLang();
+  const { data: garmin, loading, error, refetch } = useGarminData();
+
+  // Merge Garmin live data over mock data where available
+  const restingHR = garmin?.heartRate?.restingHR ?? today.restingHR;
+  const steps = garmin?.steps ?? today.steps;
+  const sleepScore = garmin?.sleep?.score ?? today.sleep.score;
+  const sleepDuration = garmin?.sleep?.duration ?? today.sleep.duration;
+  const sleepEfficiency = today.sleep.efficiency;
+  const hrValues =
+    garmin?.heartRate?.values && garmin.heartRate.values.length > 0
+      ? garmin.heartRate.values
+      : hourlyHR;
+
   const recoveryColor = getRecoveryColor(today.recovery);
   const strainColor = getStrainColor(today.strain);
+
   const now = new Date();
-  const dateStr = now.toLocaleDateString("en-US", {
+  const dateStr = now.toLocaleDateString(lang === "th" ? "th-TH" : "en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   });
+
+  const greeting = `${t.dashboard.greeting}, Wasinee`;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Good morning, Wasinee</h1>
+          <h1 className="text-2xl font-bold">{greeting}</h1>
           <p className="text-bear-subtle text-sm mt-1">{dateStr}</p>
         </div>
-        <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
-          <div className="w-2 h-2 rounded-full bg-bear-recovery animate-pulse" />
-          <span className="text-sm font-medium">Live Sync</span>
+        <div className="flex items-center gap-3">
+          {/* Garmin status badge */}
+          {loading ? (
+            <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
+              <RefreshCw size={14} className="text-bear-subtle animate-spin" />
+              <span className="text-sm text-bear-subtle">{t.garmin.connecting}</span>
+            </div>
+          ) : error ? (
+            <div className="flex items-center gap-2 bg-bear-card border border-red-900/40 rounded-xl px-4 py-2">
+              <WifiOff size={14} className="text-bear-danger" />
+              <span className="text-sm text-bear-danger">{t.garmin.demoData}</span>
+              <button
+                onClick={refetch}
+                className="text-xs text-bear-subtle hover:text-bear-text ml-1 transition-colors"
+              >
+                {t.garmin.retry}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
+              <Wifi size={14} className="text-bear-recovery" />
+              <span className="text-sm font-medium">{t.garmin.liveData}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -64,11 +105,11 @@ export default function Dashboard() {
         <div className="bg-bear-card border border-bear-border rounded-2xl p-6 flex flex-col items-center card-glow-recovery">
           <div className="flex items-center gap-2 self-start mb-4 w-full justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-bear-subtle">
-              Recovery
+              {t.dashboard.recovery}
             </span>
             <div className="flex items-center gap-1 text-xs text-bear-subtle">
               <TrendIcon value={today.recovery} prev={yesterday.recovery} />
-              <span>vs yesterday</span>
+              <span>{t.dashboard.vsYesterday}</span>
             </div>
           </div>
           <MetricRing
@@ -77,17 +118,17 @@ export default function Dashboard() {
             size={168}
             strokeWidth={14}
             color={recoveryColor}
-            label="recovery"
-            sublabel={getRecoveryLabel(today.recovery)}
+            label={t.dashboard.recovery.toLowerCase()}
+            sublabel={getRecoveryLabel(today.recovery, t)}
           />
           <div className="grid grid-cols-2 gap-3 w-full mt-5">
             <div className="text-center">
               <p className="text-lg font-bold">{today.hrv}</p>
-              <p className="text-xs text-bear-subtle">HRV ms</p>
+              <p className="text-xs text-bear-subtle">{t.dashboard.hrv} ms</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold">{today.restingHR}</p>
-              <p className="text-xs text-bear-subtle">Resting HR</p>
+              <p className="text-lg font-bold">{restingHR}</p>
+              <p className="text-xs text-bear-subtle">{t.dashboard.restingHR}</p>
             </div>
           </div>
         </div>
@@ -96,11 +137,11 @@ export default function Dashboard() {
         <div className="bg-bear-card border border-bear-border rounded-2xl p-6 flex flex-col items-center card-glow-strain">
           <div className="flex items-center gap-2 self-start mb-4 w-full justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-bear-subtle">
-              Strain
+              {t.dashboard.strain}
             </span>
             <div className="flex items-center gap-1 text-xs text-bear-subtle">
               <TrendIcon value={today.strain} prev={yesterday.strain} />
-              <span>vs yesterday</span>
+              <span>{t.dashboard.vsYesterday}</span>
             </div>
           </div>
           <MetricRing
@@ -109,17 +150,17 @@ export default function Dashboard() {
             size={168}
             strokeWidth={14}
             color={strainColor}
-            label="/ 21 strain"
-            sublabel={getStrainLabel(today.strain)}
+            label="/ 21"
+            sublabel={getStrainLabel(today.strain, t)}
           />
           <div className="grid grid-cols-2 gap-3 w-full mt-5">
             <div className="text-center">
               <p className="text-lg font-bold">{today.calories.toLocaleString()}</p>
-              <p className="text-xs text-bear-subtle">Calories</p>
+              <p className="text-xs text-bear-subtle">{t.dashboard.calories}</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold">{today.steps.toLocaleString()}</p>
-              <p className="text-xs text-bear-subtle">Steps</p>
+              <p className="text-lg font-bold">{steps.toLocaleString()}</p>
+              <p className="text-xs text-bear-subtle">{t.dashboard.steps}</p>
             </div>
           </div>
         </div>
@@ -128,36 +169,36 @@ export default function Dashboard() {
         <div className="bg-bear-card border border-bear-border rounded-2xl p-6 flex flex-col items-center card-glow-sleep">
           <div className="flex items-center gap-2 self-start mb-4 w-full justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-bear-subtle">
-              Sleep
+              {t.dashboard.sleep}
             </span>
             <div className="flex items-center gap-1 text-xs text-bear-subtle">
-              <TrendIcon value={today.sleep.score} prev={yesterday.sleep.score} />
-              <span>vs yesterday</span>
+              <TrendIcon value={sleepScore ?? 0} prev={yesterday.sleep.score} />
+              <span>{t.dashboard.vsYesterday}</span>
             </div>
           </div>
           <MetricRing
-            value={today.sleep.score}
+            value={sleepScore ?? 0}
             max={100}
             size={168}
             strokeWidth={14}
             color="#8b5cf6"
-            label="sleep score"
+            label={t.sleep.sleepScore.toLowerCase()}
             sublabel={
-              today.sleep.score >= 75
-                ? "Restorative"
-                : today.sleep.score >= 50
-                  ? "Adequate"
-                  : "Poor"
+              (sleepScore ?? 0) >= 75
+                ? t.sleep.restorative
+                : (sleepScore ?? 0) >= 50
+                  ? t.sleep.adequate
+                  : t.sleep.poor
             }
           />
           <div className="grid grid-cols-2 gap-3 w-full mt-5">
             <div className="text-center">
-              <p className="text-lg font-bold">{today.sleep.duration}h</p>
-              <p className="text-xs text-bear-subtle">Duration</p>
+              <p className="text-lg font-bold">{sleepDuration}{t.common.hrs}</p>
+              <p className="text-xs text-bear-subtle">{t.sleep.duration}</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold">{today.sleep.efficiency}%</p>
-              <p className="text-xs text-bear-subtle">Efficiency</p>
+              <p className="text-lg font-bold">{sleepEfficiency}%</p>
+              <p className="text-xs text-bear-subtle">{t.sleep.efficiency}</p>
             </div>
           </div>
         </div>
@@ -166,54 +207,54 @@ export default function Dashboard() {
       {/* Stat Cards Row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <StatCard
-          label="SpO2"
+          label={t.metrics.spo2}
           value={today.spo2}
           unit="%"
-          icon={Droplets}
+          icon={Heart}
           iconColor="#3b82f6"
           trend={0.2}
-          subtitle="normal range"
+          subtitle={t.metrics.normalRange}
         />
         <StatCard
-          label="Respiratory Rate"
+          label={t.metrics.respiratoryRate}
           value={today.respiratoryRate}
-          unit="br/min"
+          unit={t.metrics.perMin}
           icon={Wind}
           iconColor="#00d4aa"
           trend={-0.8}
-          subtitle="vs baseline"
+          subtitle={t.metrics.vsBaseline}
         />
         <StatCard
-          label="Active Calories"
+          label={t.metrics.activeCalories}
           value={today.calories.toLocaleString()}
-          unit="kcal"
+          unit={t.common.kcal}
           icon={Flame}
           iconColor="#f59e0b"
           trend={12}
-          subtitle="above target"
+          subtitle={t.metrics.aboveTarget}
         />
         <StatCard
-          label="Steps"
-          value={today.steps.toLocaleString()}
+          label={t.metrics.steps}
+          value={steps.toLocaleString()}
           icon={Footprints}
           iconColor="#8b5cf6"
           trend={-5}
-          subtitle="goal: 10,000"
+          subtitle={`${t.metrics.goal}: 10,000`}
         />
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <HRVChart data={last30Days} days={14} />
-        <HeartRateChart data={hourlyHR} />
+        <HRVChart data={last30Days} days={14} t={t} />
+        <HeartRateChart data={hrValues as typeof hourlyHR} t={t} />
       </div>
 
       {/* Recent Workouts */}
       <div className="bg-bear-card border border-bear-border rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm">Recent Activity</h3>
+          <h3 className="font-semibold text-sm">{t.dashboard.recentActivity}</h3>
           <a href="/activity" className="text-xs text-bear-strain hover:text-blue-400 transition-colors">
-            View all →
+            {t.dashboard.viewAll}
           </a>
         </div>
         <div className="space-y-3">
@@ -228,25 +269,22 @@ export default function Dashboard() {
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm">{w.name}</p>
                 <p className="text-xs text-bear-subtle">
-                  {w.startTime} · {w.duration}min
+                  {w.startTime} · {w.duration}{t.common.min}
                 </p>
               </div>
               <div className="text-right">
-                <p
-                  className="font-bold text-sm"
-                  style={{ color: getStrainColor(w.strain) }}
-                >
+                <p className="font-bold text-sm" style={{ color: getStrainColor(w.strain) }}>
                   {w.strain.toFixed(1)}
                 </p>
                 <p className="text-xs text-bear-subtle">strain</p>
               </div>
               <div className="text-right">
                 <p className="font-medium text-sm text-bear-heart">{w.avgHR}</p>
-                <p className="text-xs text-bear-subtle">avg bpm</p>
+                <p className="text-xs text-bear-subtle">{t.dashboard.avgBPM}</p>
               </div>
               <div className="text-right">
                 <p className="font-medium text-sm text-bear-warning">{w.calories}</p>
-                <p className="text-xs text-bear-subtle">kcal</p>
+                <p className="text-xs text-bear-subtle">{t.common.kcal}</p>
               </div>
             </div>
           ))}

@@ -11,19 +11,22 @@ import {
   Activity,
   Settings,
   Watch,
+  Languages,
 } from "lucide-react";
 import { clsx } from "clsx";
-
-const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/recovery", label: "Recovery", icon: Heart },
-  { href: "/sleep", label: "Sleep", icon: Moon },
-  { href: "/activity", label: "Activity", icon: Activity },
-  { href: "/trends", label: "Trends", icon: TrendingUp },
-];
+import { useLang } from "@/hooks/useLang";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { t, lang, toggleLang } = useLang();
+
+  const navItems = [
+    { href: "/", label: t.nav.dashboard, icon: LayoutDashboard },
+    { href: "/recovery", label: t.nav.recovery, icon: Heart },
+    { href: "/sleep", label: t.nav.sleep, icon: Moon },
+    { href: "/activity", label: t.nav.activity, icon: Activity },
+    { href: "/trends", label: t.nav.trends, icon: TrendingUp },
+  ];
 
   return (
     <aside className="w-64 shrink-0 h-screen bg-bear-card border-r border-bear-border flex flex-col">
@@ -48,7 +51,7 @@ export default function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate">Wasinee S.</p>
-            <p className="text-xs text-bear-subtle">Premium Member</p>
+            <p className="text-xs text-bear-subtle">{t.common.premium}</p>
           </div>
           <div className="w-2 h-2 rounded-full bg-bear-recovery animate-pulse" />
         </div>
@@ -74,7 +77,7 @@ export default function Sidebar() {
             >
               <Icon
                 className={clsx(
-                  "w-4.5 h-4.5 transition-colors",
+                  "transition-colors",
                   active ? "text-bear-recovery" : "text-inherit"
                 )}
                 size={18}
@@ -89,11 +92,25 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="p-4 border-t border-bear-border">
+      <div className="p-4 border-t border-bear-border space-y-2">
+        {/* Language toggle */}
+        <button
+          onClick={toggleLang}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-bear-subtle hover:text-bear-text hover:bg-white/5 transition-all"
+        >
+          <Languages size={16} />
+          <span>{lang === "th" ? "🇹🇭 ภาษาไทย" : "🇬🇧 English"}</span>
+          <span className="ml-auto text-xs text-bear-muted">
+            {lang === "th" ? "EN" : "TH"}
+          </span>
+        </button>
+
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2 text-xs text-bear-subtle">
             <Zap size={12} className="text-bear-warning" />
-            <span>Synced 2m ago</span>
+            <span>
+              {t.common.syncedAgo} 2{t.common.minsAgo}
+            </span>
           </div>
           <button className="text-bear-subtle hover:text-bear-text transition-colors">
             <Settings size={16} />
