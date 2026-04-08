@@ -1,10 +1,20 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  return NextResponse.next();
-}
+export default withAuth(
+  function middleware() {
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: "/login",
+    },
+  }
+);
 
 export const config = {
-  matcher: ["/((?!_next|icons|manifest|sw\\.js|favicon).*)"],
+  matcher: ["/((?!login|api/auth|_next|icons|manifest|sw\\.js|favicon).*)"],
 };
