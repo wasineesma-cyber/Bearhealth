@@ -13,14 +13,6 @@ export default function LoginPage() {
     if (status === "authenticated") router.push("/");
   }, [status, router]);
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-bear-recovery border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       {/* Background glow blobs */}
@@ -59,7 +51,8 @@ export default function LoginPage() {
           {/* Google Sign In */}
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl glass border border-white/15 hover:border-white/25 hover:bg-white/8 transition-all duration-200 font-medium text-sm group"
+            disabled={status === "loading"}
+            className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl glass border border-white/15 hover:border-white/25 hover:bg-white/8 transition-all duration-200 font-medium text-sm group disabled:opacity-60"
           >
             {/* Google icon */}
             <svg width="20" height="20" viewBox="0 0 24 24">
