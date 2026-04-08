@@ -3,6 +3,7 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import AIChat from "@/components/AIChat";
 import PwaRegister from "@/components/PwaRegister";
+import SessionWrapper from "@/components/SessionWrapper";
 
 export const metadata: Metadata = {
   title: "BearHealth — Smartwatch Analytics",
@@ -30,14 +31,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="th">
       <body className="bg-transparent text-bear-text antialiased">
-        <div className="flex h-screen overflow-hidden relative z-10">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            {children}
-          </main>
-        </div>
-        <AIChat />
-        <PwaRegister />
+        <SessionWrapper>
+          <div className="flex h-screen overflow-hidden relative z-10">
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto">
+              {children}
+            </main>
+          </div>
+          <AIChat />
+          <PwaRegister />
+        </SessionWrapper>
       </body>
     </html>
   );
