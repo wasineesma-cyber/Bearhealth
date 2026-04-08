@@ -26,10 +26,10 @@ export default function Sidebar() {
   const NavContent = () => (
     <>
       {/* Logo */}
-      <div className="p-5 border-b border-bear-gold/10">
+      <div className="p-5 border-b border-white/6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-bear-gold to-bear-gold-light flex items-center justify-center shadow-lg shadow-bear-gold/30">
-            <Watch className="w-5 h-5 text-black" />
+          <div className="w-9 h-9 rounded-xl bg-black border border-bear-gold/30 flex items-center justify-center">
+            <Watch className="w-5 h-5 text-bear-gold" />
           </div>
           <div>
             <p className="font-bold text-base tracking-tight text-gradient-gold">BearHealth</p>
@@ -39,16 +39,16 @@ export default function Sidebar() {
       </div>
 
       {/* Profile */}
-      <div className="p-4 border-b border-bear-gold/10">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-bear-gold/5 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-bear-gold to-bear-gold-dark flex items-center justify-center font-bold text-sm text-black shadow-lg shadow-bear-gold/20">
+      <div className="p-4 border-b border-white/6">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/4 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-black border border-white/10 flex items-center justify-center font-bold text-sm text-bear-gold">
             WN
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm truncate text-bear-text">Wasinee S.</p>
+            <p className="font-semibold text-sm truncate">Wasinee S.</p>
             <p className="text-xs text-bear-subtle">{t.common.premium}</p>
           </div>
-          <div className="w-2 h-2 rounded-full bg-bear-gold animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-bear-gold" />
         </div>
       </div>
 
@@ -68,8 +68,8 @@ export default function Sidebar() {
               className={clsx(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-bear-gold/10 border border-bear-gold/25 text-bear-text"
-                  : "text-bear-subtle hover:text-bear-text hover:bg-bear-gold/5"
+                  ? "bg-white/5 text-white"
+                  : "text-bear-subtle hover:text-white hover:bg-white/4"
               )}
             >
               <Icon size={18} className={clsx(active ? "text-bear-gold" : "text-inherit")} />
@@ -81,10 +81,10 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="p-4 border-t border-bear-gold/10 space-y-1">
+      <div className="p-4 border-t border-white/6 space-y-1">
         <button
           onClick={toggleLang}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-bear-subtle hover:text-bear-text hover:bg-bear-gold/5 transition-all"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-bear-subtle hover:text-white hover:bg-white/4 transition-all"
         >
           <Languages size={16} />
           <span>{lang === "th" ? "🇹🇭 ภาษาไทย" : "🇬🇧 English"}</span>
@@ -106,14 +106,14 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 h-screen flex-col glass-strong border-r border-bear-gold/12 relative z-20">
+      <aside className="hidden lg:flex w-64 shrink-0 h-screen flex-col glass-strong border-r border-white/6 relative z-20">
         <NavContent />
       </aside>
 
       {/* Mobile hamburger */}
       <button
         onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl glass border border-bear-gold/15 flex items-center justify-center"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl glass flex items-center justify-center"
       >
         <Menu size={20} className="text-bear-gold" />
       </button>

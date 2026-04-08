@@ -10,19 +10,20 @@ const config: Config = {
     extend: {
       colors: {
         bear: {
-          bg:       "#08070a",
-          card:     "rgba(212,175,55,0.05)",
-          border:   "rgba(212,175,55,0.15)",
-          muted:    "rgba(212,175,55,0.08)",
-          text:     "#F0E6C8",
-          subtle:   "#7A6840",
+          bg:       "#060608",
+          card:     "rgba(255,255,255,0.03)",
+          border:   "rgba(255,255,255,0.07)",
+          muted:    "rgba(255,255,255,0.06)",
+          text:     "#e8e8e8",
+          subtle:   "#555555",
+          // gold — only for text/icon accents
           gold:     "#D4AF37",
-          "gold-bright": "#FFD700",
-          "gold-light":  "#F5D070",
-          "gold-dark":   "#A67C00",
+          "gold-light": "#F5D070",
+          "gold-dark":  "#A67C00",
+          // metric colors (kept subtle, used in rings/text only)
           recovery: "#D4AF37",
-          strain:   "#FFB830",
-          sleep:    "#C9A84C",
+          strain:   "#C9A84C",
+          sleep:    "#B8973A",
           warning:  "#F59E0B",
           danger:   "#ef4444",
           heart:    "#ff4d6d",
