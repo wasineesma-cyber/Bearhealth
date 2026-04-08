@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 
-interface GarminData {
+export interface GarminData {
   heartRate: {
     restingHR: number | null;
     maxHR: number | null;
@@ -19,28 +19,18 @@ interface GarminData {
     respiratoryRate: number | null;
   } | null;
   steps: number | null;
-  profile: {
-    displayName: string;
-    fullName: string;
-    profileImageUrl: string | null;
-  } | null;
+  profile: { displayName: string; fullName: string; profileImageUrl: string | null } | null;
+  bodyBattery: { current: number | null; highest: number } | null;
+  stress: { avg: number | null; max: number | null } | null;
+  hrv: { lastNight: number | null; weeklyAvg: number | null; status: string | null } | null;
 }
 
-interface UseGarminDataReturn {
-  data: GarminData | null;
-  loading: boolean;
-  error: string | null;
-  synced: boolean;
-  refetch: () => void;
-}
-
-export function useGarminData(): UseGarminDataReturn {
+export function useGarminData() {
   const [data, setData] = useState<GarminData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [synced, setSynced] = useState(false);
 
-  // Manual fetch only — NOT auto on mount (prevents Garmin OTP spam)
   const refetch = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -51,7 +41,7 @@ export function useGarminData(): UseGarminDataReturn {
       setData(json.data);
       setSynced(true);
     } catch (e: any) {
-      setError(e.message ?? "Failed to fetch Garmin data");
+      setError(e.message ?? "เชื่อมต่อ Garmin ไม่ได้ กรุณาลองใหม่");
     } finally {
       setLoading(false);
     }
@@ -66,7 +56,7 @@ export function useGarminActivities(limit = 10) {
   const [error, setError] = useState<string | null>(null);
   const [synced, setSynced] = useState(false);
 
-  const fetch_ = useCallback(async () => {
+  const refetch = useCallback(async () => {
     setLoading(true);
     fetch(`/api/garmin/activities?limit=${limit}`)
       .then((r) => r.json())
@@ -79,5 +69,5 @@ export function useGarminActivities(limit = 10) {
       .finally(() => setLoading(false));
   }, [limit]);
 
-  return { activities, loading, error, synced, refetch: fetch_ };
+  return { activities, loading, error, synced, refetch };
 }

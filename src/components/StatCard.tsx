@@ -3,7 +3,7 @@ import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
   label: string;
-  value: string | number;
+  value: string | number | null;
   unit?: string;
   icon: LucideIcon;
   iconColor?: string;
@@ -28,8 +28,10 @@ export default function StatCard({
         </div>
       </div>
       <div className="flex items-end gap-1.5">
-        <span className="text-3xl font-bold leading-none">{value}</span>
-        {unit && <span className="text-sm text-bear-subtle mb-0.5 font-medium">{unit}</span>}
+        <span className="text-3xl font-bold leading-none">
+          {value == null ? <span className="text-bear-subtle text-2xl">--</span> : typeof value === "number" ? value.toLocaleString() : value}
+        </span>
+        {unit && value != null && <span className="text-sm text-bear-subtle mb-0.5 font-medium">{unit}</span>}
       </div>
       <div className="flex items-center gap-2">
         {trend !== undefined && (

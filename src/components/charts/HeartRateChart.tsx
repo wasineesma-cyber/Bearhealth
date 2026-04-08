@@ -10,11 +10,10 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { HourlyHR } from "@/lib/mockData";
 import { type Translations } from "@/lib/i18n";
 
 interface HeartRateChartProps {
-  data: HourlyHR[];
+  data: { time: string; bpm: number }[];
   t?: Translations;
 }
 

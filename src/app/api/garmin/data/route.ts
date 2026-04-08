@@ -1,15 +1,26 @@
 import { NextResponse } from "next/server";
-import { getHeartRate, getSleep, getSteps, getUserProfile } from "@/lib/garmin";
+import {
+  getHeartRate,
+  getSleep,
+  getSteps,
+  getUserProfile,
+  getBodyBattery,
+  getDailyStress,
+  getHrv,
+} from "@/lib/garmin";
 
 export async function GET() {
   try {
-    // Fetch in parallel
-    const [heartRate, sleep, steps, profile] = await Promise.allSettled([
-      getHeartRate(),
-      getSleep(),
-      getSteps(),
-      getUserProfile(),
-    ]);
+    const [heartRate, sleep, steps, profile, bodyBattery, stress, hrv] =
+      await Promise.allSettled([
+        getHeartRate(),
+        getSleep(),
+        getSteps(),
+        getUserProfile(),
+        getBodyBattery(),
+        getDailyStress(),
+        getHrv(),
+      ]);
 
     return NextResponse.json({
       success: true,
@@ -18,12 +29,9 @@ export async function GET() {
         sleep: sleep.status === "fulfilled" ? sleep.value : null,
         steps: steps.status === "fulfilled" ? steps.value : null,
         profile: profile.status === "fulfilled" ? profile.value : null,
-      },
-      errors: {
-        heartRate: heartRate.status === "rejected" ? heartRate.reason?.message : null,
-        sleep: sleep.status === "rejected" ? sleep.reason?.message : null,
-        steps: steps.status === "rejected" ? steps.reason?.message : null,
-        profile: profile.status === "rejected" ? profile.reason?.message : null,
+        bodyBattery: bodyBattery.status === "fulfilled" ? bodyBattery.value : null,
+        stress: stress.status === "fulfilled" ? stress.value : null,
+        hrv: hrv.status === "fulfilled" ? hrv.value : null,
       },
       fetchedAt: new Date().toISOString(),
     });
