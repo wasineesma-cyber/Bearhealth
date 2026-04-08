@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import AIChat from "@/components/AIChat";
 
 export const metadata: Metadata = {
   title: "BearHealth — Smartwatch Analytics",
@@ -21,6 +22,7 @@ export default function RootLayout({
             {children}
           </main>
         </div>
+        <AIChat />
       </body>
     </html>
   );
