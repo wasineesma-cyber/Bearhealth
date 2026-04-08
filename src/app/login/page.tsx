@@ -32,14 +32,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-bear-recovery opacity-10 blur-3xl" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-bear-sleep opacity-10 blur-3xl" />
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-bear-gold opacity-8 blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-bear-gold-dark opacity-8 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-sm">
         <div className="glass-strong rounded-3xl p-8 flex flex-col items-center gap-6">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bear-recovery to-emerald-400 flex items-center justify-center shadow-2xl shadow-bear-recovery/40">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bear-gold to-bear-gold-light flex items-center justify-center shadow-2xl shadow-bear-gold/40">
               <Watch size={30} className="text-black" />
             </div>
             <div className="text-center">
@@ -56,7 +56,7 @@ export default function LoginPage() {
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl glass border border-white/15 bg-transparent text-white placeholder-bear-subtle text-sm focus:outline-none focus:border-bear-recovery"
+              className="w-full px-4 py-3 rounded-2xl glass border border-bear-gold/20 bg-transparent text-bear-text placeholder-bear-subtle text-sm focus:outline-none focus:border-bear-gold/50"
               autoComplete="username"
             />
             <input
@@ -64,7 +64,7 @@ export default function LoginPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl glass border border-white/15 bg-transparent text-white placeholder-bear-subtle text-sm focus:outline-none focus:border-bear-recovery"
+              className="w-full px-4 py-3 rounded-2xl glass border border-bear-gold/20 bg-transparent text-bear-text placeholder-bear-subtle text-sm focus:outline-none focus:border-bear-gold/50"
               autoComplete="current-password"
             />
             {error && (
@@ -73,7 +73,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-2xl bg-bear-recovery text-black font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-bear-gold to-bear-gold-light text-black font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-bear-gold/25"
             >
               {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
             </button>

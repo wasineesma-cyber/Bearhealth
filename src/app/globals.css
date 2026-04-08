@@ -4,9 +4,9 @@
 @tailwind utilities;
 
 :root {
-  --recovery: #00d4aa;
-  --strain: #3b82f6;
-  --sleep: #8b5cf6;
+  --gold:       #D4AF37;
+  --gold-light: #F5D070;
+  --gold-dark:  #A67C00;
 }
 
 * { box-sizing: border-box; }
@@ -14,76 +14,88 @@
 html, body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #080c10;
-  color: #e8e8e8;
+  background-color: #08070a;
+  color: #F0E6C8;
   min-height: 100%;
 }
 
-/* ── Gradient background ── */
+/* ── Gradient background — subtle gold dust ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 10% 0%,   rgba(0,212,170,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 100%,  rgba(139,92,246,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%,   rgba(59,130,246,0.04) 0%, transparent 70%);
+    radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(212,175,55,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 100%,  rgba(212,175,55,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 50% 50%,   rgba(255,184,48,0.03) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
 
-/* ── Glass card ── */
+/* ── Glass card — gold tint ── */
 .glass {
-  background: rgba(255,255,255,0.04);
+  background: rgba(212,175,55,0.04);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.09);
+  border: 1px solid rgba(212,175,55,0.14);
 }
 
 .glass-strong {
-  background: rgba(255,255,255,0.07);
+  background: rgba(212,175,55,0.07);
   backdrop-filter: blur(32px) saturate(180%);
   -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(212,175,55,0.20);
 }
 
 /* ── Glow shadows ── */
-.glow-recovery { box-shadow: 0 0 40px rgba(0,212,170,0.12), inset 0 1px 0 rgba(255,255,255,0.08); }
-.glow-strain   { box-shadow: 0 0 40px rgba(59,130,246,0.12),  inset 0 1px 0 rgba(255,255,255,0.08); }
-.glow-sleep    { box-shadow: 0 0 40px rgba(139,92,246,0.12),  inset 0 1px 0 rgba(255,255,255,0.08); }
+.glow-recovery { box-shadow: 0 0 40px rgba(212,175,55,0.14), inset 0 1px 0 rgba(212,175,55,0.10); }
+.glow-strain   { box-shadow: 0 0 40px rgba(255,184,48,0.14),  inset 0 1px 0 rgba(212,175,55,0.10); }
+.glow-sleep    { box-shadow: 0 0 40px rgba(201,168,76,0.14),  inset 0 1px 0 rgba(212,175,55,0.10); }
+
+/* ── Card glow on hover ── */
+.card-glow-recovery { border-color: rgba(212,175,55,0.18); }
+.card-glow-strain   { border-color: rgba(255,184,48,0.18); }
+.card-glow-sleep    { border-color: rgba(201,168,76,0.18); }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 2px; }
 
 /* ── Recharts tooltip ── */
 .custom-tooltip {
-  background: rgba(10,15,20,0.9);
+  background: rgba(8,7,10,0.95);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(212,175,55,0.2);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 13px;
-  color: #e8e8e8;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  color: #F0E6C8;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
 }
 
+/* ── Gold text gradients ── */
 @layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37, #FFD700, #C9A84C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
   .text-gradient-recovery {
-    background: linear-gradient(135deg, #00d4aa, #00f5cc);
+    background: linear-gradient(135deg, #D4AF37, #F5D070);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-strain {
-    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    background: linear-gradient(135deg, #FFB830, #FFD700);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-sleep {
-    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    background: linear-gradient(135deg, #C9A84C, #D4AF37);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
