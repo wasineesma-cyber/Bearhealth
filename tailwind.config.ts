@@ -10,10 +10,10 @@ const config: Config = {
     extend: {
       colors: {
         bear: {
-          bg: "#0d0d0d",
-          card: "#1a1a1a",
-          border: "#2a2a2a",
-          muted: "#3a3a3a",
+          bg: "#080c10",
+          card: "rgba(255,255,255,0.04)",
+          border: "rgba(255,255,255,0.09)",
+          muted: "rgba(255,255,255,0.08)",
           text: "#e8e8e8",
           subtle: "#888888",
           recovery: "#00d4aa",
@@ -23,6 +23,9 @@ const config: Config = {
           danger: "#ef4444",
           heart: "#ff4d6d",
         },
+      },
+      backdropBlur: {
+        xs: "4px",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

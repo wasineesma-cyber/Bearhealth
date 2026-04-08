@@ -1,0 +1,44 @@
+{
+  "name": "BearHealth — Smartwatch Analytics",
+  "short_name": "BearHealth",
+  "description": "วิเคราะห์ข้อมูล smartwatch พร้อม AI Coach",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "orientation": "portrait-primary",
+  "categories": ["health", "fitness"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Recovery",
+      "url": "/recovery",
+      "description": "ดูข้อมูล Recovery"
+    },
+    {
+      "name": "Sleep",
+      "url": "/sleep",
+      "description": "ดูข้อมูลการนอน"
+    }
+  ]
+}
