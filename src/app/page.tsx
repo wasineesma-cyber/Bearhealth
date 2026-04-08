@@ -39,7 +39,7 @@ function TrendIcon({ value, prev }: { value: number; prev: number }) {
 
 export default function Dashboard() {
   const { t, lang } = useLang();
-  const { data: garmin, loading, error, refetch } = useGarminData();
+  const { data: garmin, loading, error, synced, refetch } = useGarminData();
 
   // Merge Garmin live data over mock data where available
   const restingHR = garmin?.heartRate?.restingHR ?? today.restingHR;
@@ -73,7 +73,7 @@ export default function Dashboard() {
           <p className="text-bear-subtle text-sm mt-1">{dateStr}</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Garmin status badge */}
+          {/* Garmin sync button */}
           {loading ? (
             <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
               <RefreshCw size={14} className="text-bear-subtle animate-spin" />
@@ -90,11 +90,19 @@ export default function Dashboard() {
                 {t.garmin.retry}
               </button>
             </div>
-          ) : (
+          ) : synced ? (
             <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
               <Wifi size={14} className="text-bear-recovery" />
               <span className="text-sm font-medium">{t.garmin.liveData}</span>
             </div>
+          ) : (
+            <button
+              onClick={refetch}
+              className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2 hover:border-bear-recovery transition-colors"
+            >
+              <RefreshCw size={14} className="text-bear-subtle" />
+              <span className="text-sm text-bear-subtle">Sync Garmin</span>
+            </button>
           )}
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 interface GarminData {
   heartRate: {
@@ -30,6 +30,7 @@ interface UseGarminDataReturn {
   data: GarminData | null;
   loading: boolean;
   error: string | null;
+  synced: boolean;
   refetch: () => void;
 }
 
@@ -37,8 +38,10 @@ export function useGarminData(): UseGarminDataReturn {
   const [data, setData] = useState<GarminData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [synced, setSynced] = useState(false);
 
-  const fetchData = async () => {
+  // Manual fetch only — NOT auto on mount (prevents Garmin OTP spam)
+  const refetch = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -46,36 +49,35 @@ export function useGarminData(): UseGarminDataReturn {
       const json = await res.json();
       if (!json.success) throw new Error(json.error);
       setData(json.data);
+      setSynced(true);
     } catch (e: any) {
       setError(e.message ?? "Failed to fetch Garmin data");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
   }, []);
 
-  return { data, loading, error, refetch: fetchData };
+  return { data, loading, error, synced, refetch };
 }
 
 export function useGarminActivities(limit = 10) {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [synced, setSynced] = useState(false);
 
-  useEffect(() => {
+  const fetch_ = useCallback(async () => {
     setLoading(true);
     fetch(`/api/garmin/activities?limit=${limit}`)
       .then((r) => r.json())
       .then((json) => {
         if (!json.success) throw new Error(json.error);
         setActivities(json.activities);
+        setSynced(true);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [limit]);
 
-  return { activities, loading, error };
+  return { activities, loading, error, synced, refetch: fetch_ };
 }
