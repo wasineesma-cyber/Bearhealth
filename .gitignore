@@ -14,6 +14,9 @@
 # production
 /build
 
+# runtime data store (shops, orders, uploaded slips)
+/data
+
 # misc
 .DS_Store
 *.pem

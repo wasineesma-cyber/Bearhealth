@@ -1,176 +1,103 @@
 "use client";
 
-import { Heart, Wind, Flame, Footprints, RefreshCw, Wifi, WifiOff } from "lucide-react";
-import MetricRing from "@/components/MetricRing";
-import StatCard from "@/components/StatCard";
-import HeartRateChart from "@/components/charts/HeartRateChart";
-import { useGarminData } from "@/hooks/useGarminData";
-import { useLang } from "@/hooks/useLang";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Store, ArrowRight, Sparkles, ShieldCheck } from "lucide-react";
 
-function Val({ v, unit }: { v: number | null | undefined; unit?: string }) {
-  if (v == null) return <span className="text-bear-subtle">--</span>;
-  return <>{v.toLocaleString()}{unit && <span className="text-bear-subtle text-sm ml-0.5">{unit}</span>}</>;
+interface ShopCard {
+  slug: string;
+  name: string;
+  description: string;
 }
 
-export default function Dashboard() {
-  const { t, lang } = useLang();
-  const { data: g, loading, error, synced, refetch } = useGarminData();
+export default function Landing() {
+  const [site, setSite] = useState({ siteName: "Bear Cards", siteTagline: "" });
+  const [shops, setShops] = useState<ShopCard[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString(lang === "th" ? "th-TH" : "en-US", {
-    weekday: "long", month: "long", day: "numeric",
-  });
-
-  // Body battery → recovery (0–100)
-  const recovery = g?.bodyBattery?.current ?? null;
-  // Stress avg → map to 0–21 strain scale
-  const strainRaw = g?.stress?.avg ?? null;
-  const strain = strainRaw != null ? Math.round((strainRaw / 100) * 21 * 10) / 10 : null;
-  const sleepScore = g?.sleep?.score ?? null;
-  const restingHR = g?.heartRate?.restingHR ?? null;
-  const hrv = g?.hrv?.lastNight ?? null;
-  const steps = g?.steps ?? null;
-  const hrValues = g?.heartRate?.values ?? [];
+  useEffect(() => {
+    fetch("/api/shops")
+      .then((r) => r.json())
+      .then((d) => {
+        setSite(d.site);
+        setShops(d.shops || []);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <main className="max-w-5xl mx-auto px-5 py-10 sm:py-16">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold">สวัสดี, Wasinee</h1>
-          <p className="text-bear-subtle text-sm mt-1">{dateStr}</p>
+      <header className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-bear-gold mb-5">
+          <Sparkles size={13} /> ร้านค้าออนไลน์
         </div>
-        <div className="flex items-center gap-3">
-          {loading ? (
-            <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
-              <RefreshCw size={14} className="text-bear-subtle animate-spin" />
-              <span className="text-sm text-bear-subtle">กำลังโหลด...</span>
-            </div>
-          ) : error ? (
-            <div className="flex items-center gap-2 bg-bear-card border border-red-900/40 rounded-xl px-4 py-2">
-              <WifiOff size={14} className="text-bear-danger" />
-              <span className="text-sm text-bear-danger">เชื่อมต่อไม่ได้</span>
-              <button onClick={refetch} className="text-xs text-bear-subtle hover:text-bear-text ml-1">ลองใหม่</button>
-            </div>
-          ) : synced ? (
-            <div className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2">
-              <Wifi size={14} className="text-bear-recovery" />
-              <span className="text-sm font-medium">ข้อมูลจริงจาก Garmin</span>
-            </div>
-          ) : (
-            <button
-              onClick={refetch}
-              className="flex items-center gap-2 bg-bear-card border border-bear-border rounded-xl px-4 py-2 hover:border-bear-recovery transition-colors"
-            >
-              <RefreshCw size={14} className="text-bear-subtle" />
-              <span className="text-sm text-bear-subtle">Sync Garmin</span>
-            </button>
-          )}
-        </div>
-      </div>
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gradient-gold">
+          {site.siteName}
+        </h1>
+        {site.siteTagline && (
+          <p className="mt-4 text-bear-text/60 max-w-xl mx-auto">{site.siteTagline}</p>
+        )}
+      </header>
 
-      {/* 3 Score Rings */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {/* Recovery / Body Battery */}
-        <div className="bg-bear-card border border-bear-border rounded-2xl p-6 flex flex-col items-center card-glow-recovery">
-          <div className="flex items-center justify-between w-full mb-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-bear-subtle">Body Battery</span>
-          </div>
-          <MetricRing
-            value={recovery ?? 0}
-            max={100}
-            size={168}
-            strokeWidth={14}
-            color="#00d4aa"
-            label="battery"
-            sublabel={recovery == null ? "ไม่มีข้อมูล" : recovery >= 75 ? "พลังงานสูง" : recovery >= 40 ? "ปานกลาง" : "พลังงานต่ำ"}
-          />
-          <div className="grid grid-cols-2 gap-3 w-full mt-5">
-            <div className="text-center">
-              <p className="text-lg font-bold"><Val v={hrv} unit=" ms" /></p>
-              <p className="text-xs text-bear-subtle">HRV</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold"><Val v={restingHR} /></p>
-              <p className="text-xs text-bear-subtle">ชีพจรพัก</p>
-            </div>
-          </div>
-        </div>
+      {/* Shops */}
+      <section>
+        <h2 className="text-sm font-semibold text-bear-subtle uppercase tracking-widest mb-4">
+          เลือกร้าน
+        </h2>
 
-        {/* Strain / Stress */}
-        <div className="bg-bear-card border border-bear-border rounded-2xl p-6 flex flex-col items-center card-glow-strain">
-          <div className="flex items-center justify-between w-full mb-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-bear-subtle">Stress / Strain</span>
+        {loading ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[0, 1].map((i) => (
+              <div key={i} className="glass rounded-2xl h-32 animate-pulse" />
+            ))}
           </div>
-          <MetricRing
-            value={strain ?? 0}
-            max={21}
-            size={168}
-            strokeWidth={14}
-            color="#f59e0b"
-            label="/ 21"
-            sublabel={strainRaw == null ? "ไม่มีข้อมูล" : strainRaw >= 76 ? "สูงมาก" : strainRaw >= 51 ? "สูง" : strainRaw >= 26 ? "ปานกลาง" : "ต่ำ"}
-          />
-          <div className="grid grid-cols-2 gap-3 w-full mt-5">
-            <div className="text-center">
-              <p className="text-lg font-bold"><Val v={g?.stress?.avg} /></p>
-              <p className="text-xs text-bear-subtle">Stress เฉลี่ย</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold"><Val v={g?.stress?.max} /></p>
-              <p className="text-xs text-bear-subtle">Stress สูงสุด</p>
-            </div>
+        ) : shops.length === 0 ? (
+          <div className="glass rounded-2xl p-8 text-center text-bear-subtle">
+            ยังไม่มีร้านที่เปิดขาย — เพิ่มร้านได้ที่หน้าแอดมิน
           </div>
-        </div>
-
-        {/* Sleep */}
-        <div className="bg-bear-card border border-bear-border rounded-2xl p-6 flex flex-col items-center card-glow-sleep">
-          <div className="flex items-center justify-between w-full mb-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-bear-subtle">การนอนหลับ</span>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {shops.map((shop) => (
+              <Link
+                key={shop.slug}
+                href={`/shop/${shop.slug}`}
+                className="group glass rounded-2xl p-6 hover:border-bear-gold/40 transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-black border border-bear-gold/25 flex items-center justify-center shrink-0">
+                    <Store className="w-6 h-6 text-bear-gold" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg group-hover:text-bear-gold transition-colors">
+                      {shop.name}
+                    </h3>
+                    {shop.description && (
+                      <p className="text-sm text-bear-text/55 mt-1 line-clamp-2">
+                        {shop.description}
+                      </p>
+                    )}
+                    <span className="inline-flex items-center gap-1 text-xs text-bear-gold mt-3">
+                      เข้าชมร้าน{" "}
+                      <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-          <MetricRing
-            value={sleepScore ?? 0}
-            max={100}
-            size={168}
-            strokeWidth={14}
-            color="#8b5cf6"
-            label="คะแนน"
-            sublabel={sleepScore == null ? "ไม่มีข้อมูล" : sleepScore >= 75 ? "นอนหลับดี" : sleepScore >= 50 ? "พอใช้" : "นอนน้อย"}
-          />
-          <div className="grid grid-cols-2 gap-3 w-full mt-5">
-            <div className="text-center">
-              <p className="text-lg font-bold"><Val v={g?.sleep?.duration} unit=" ชม." /></p>
-              <p className="text-xs text-bear-subtle">ระยะเวลา</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold"><Val v={g?.sleep?.deep} unit=" ชม." /></p>
-              <p className="text-xs text-bear-subtle">หลับลึก</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        )}
+      </section>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard label="SpO2" value={null} unit="%" icon={Heart} iconColor="#3b82f6" subtitle="ไม่มีข้อมูล" />
-        <StatCard label="การหายใจ" value={g?.sleep?.respiratoryRate ?? null} unit=" /นาที" icon={Wind} iconColor="#00d4aa" subtitle="ขณะนอน" />
-        <StatCard label="ก้าวเดิน" value={steps} icon={Footprints} iconColor="#8b5cf6" subtitle="วันนี้" />
-        <StatCard label="REM Sleep" value={g?.sleep?.rem ?? null} unit=" ชม." icon={Flame} iconColor="#f59e0b" subtitle="การนอน REM" />
-      </div>
-
-      {/* HR Chart */}
-      {hrValues.length > 0 && (
-        <div className="mb-6">
-          <HeartRateChart data={hrValues} t={t} />
-        </div>
-      )}
-
-      {/* No data state */}
-      {!synced && !loading && (
-        <div className="bg-bear-card border border-bear-border rounded-2xl p-8 text-center">
-          <p className="text-bear-subtle text-sm">กด Sync Garmin เพื่อโหลดข้อมูลจริงจากนาฬิกาค่ะ</p>
-        </div>
-      )}
-    </div>
+      {/* Footer */}
+      <footer className="mt-16 pt-6 border-t border-white/6 flex items-center justify-between text-xs text-bear-subtle">
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck size={13} /> ชำระผ่าน PromptPay · แนบสลิปได้ในเว็บ
+        </span>
+        <Link href="/admin" className="hover:text-bear-gold transition-colors">
+          สำหรับร้านค้า
+        </Link>
+      </footer>
+    </main>
   );
 }
