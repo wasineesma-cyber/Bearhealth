@@ -63,3 +63,19 @@ export interface Settings {
   siteName: string;         // overall brand shown on the landing page
   siteTagline: string;
 }
+
+// ── Bill: admin-created, customer fills address + slip via a shared link ──
+export type BillStatus = "open" | "completed" | "cancelled";
+
+export interface Bill {
+  id: string;
+  code: string;             // used in the customer link /bill/<code>
+  shopId: string;
+  shopName: string;         // snapshot
+  items: OrderItem[];
+  total: number;
+  note: string;             // admin's memo (e.g. customer name / channel)
+  status: BillStatus;
+  orderCode: string;        // set once the customer completes it
+  createdAt: string;
+}

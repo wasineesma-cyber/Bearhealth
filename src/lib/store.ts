@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
-import type { Shop, Category, Product, Order, Settings } from "./types";
+import type { Shop, Category, Product, Order, Bill, Settings } from "./types";
 
 // ── File-based data store (JSON on disk) ──
 // NOTE: the runtime container is ephemeral. Data persists across requests
@@ -16,6 +16,7 @@ const FILES = {
   categories: path.join(DATA_DIR, "categories.json"),
   products: path.join(DATA_DIR, "products.json"),
   orders: path.join(DATA_DIR, "orders.json"),
+  bills: path.join(DATA_DIR, "bills.json"),
   settings: path.join(DATA_DIR, "settings.json"),
 };
 
@@ -43,6 +44,11 @@ export function uid(): string {
 
 export function orderCode(): string {
   return "BC-" + crypto.randomBytes(2).toString("hex").toUpperCase();
+}
+
+export function billCode(): string {
+  // longer + random so the link isn't guessable
+  return crypto.randomBytes(6).toString("hex");
 }
 
 export function slugify(name: string): string {
@@ -118,6 +124,9 @@ async function doSeed() {
 
   const orders = await readJson<Order[] | null>(FILES.orders, null);
   if (!orders) await writeJson(FILES.orders, []);
+
+  const bills = await readJson<Bill[] | null>(FILES.bills, null);
+  if (!bills) await writeJson(FILES.bills, []);
 }
 
 // ── Shops ──
@@ -165,6 +174,20 @@ export async function getOrders(): Promise<Order[]> {
 }
 export async function saveOrders(orders: Order[]) {
   await writeJson(FILES.orders, orders);
+}
+
+// ── Bills ──
+export async function getBills(): Promise<Bill[]> {
+  await seedIfEmpty();
+  const bills = await readJson<Bill[]>(FILES.bills, []);
+  return bills.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+export async function getBillByCode(code: string): Promise<Bill | undefined> {
+  const bills = await getBills();
+  return bills.find((b) => b.code === code);
+}
+export async function saveBills(bills: Bill[]) {
+  await writeJson(FILES.bills, bills);
 }
 
 // ── Settings ──

@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Store, Plus, LogOut, Package, Tag, Receipt, Settings as Cog,
-  Loader2, Trash2, Pencil, Check, X, ExternalLink, Home,
+  Store, Plus, LogOut, Package, Tag, Receipt, FileText, Settings as Cog,
+  Loader2, Trash2, Pencil, Check, X, ExternalLink, Home, Copy,
 } from "lucide-react";
-import type { Shop, Category, Product, Order, Settings } from "@/lib/types";
+import type { Shop, Category, Product, Order, Bill, Settings } from "@/lib/types";
 import { baht, mediaUrl, STATUS_TH } from "@/lib/format";
 
 interface AdminData {
@@ -15,10 +15,11 @@ interface AdminData {
   categories: Category[];
   products: Product[];
   orders: Order[];
+  bills: Bill[];
   settings: Settings;
 }
 
-type Tab = "orders" | "products" | "categories" | "shop";
+type Tab = "orders" | "bills" | "products" | "categories" | "shop";
 
 export default function AdminApp() {
   const router = useRouter();
@@ -26,13 +27,11 @@ export default function AdminApp() {
   const [shopId, setShopId] = useState<string>("");
   const [tab, setTab] = useState<Tab>("orders");
   const [busy, setBusy] = useState(false);
+  const [siteOpen, setSiteOpen] = useState(false);
 
   async function reload() {
     const res = await fetch("/api/admin/data");
-    if (res.status === 401) {
-      router.push("/admin/login");
-      return;
-    }
+    if (res.status === 401) return router.push("/admin/login");
     const d: AdminData = await res.json();
     setData(d);
     setShopId((cur) => cur || d.shops[0]?.id || "");
@@ -59,7 +58,7 @@ export default function AdminApp() {
     });
     const d = await res.json();
     await reload();
-    if (d.shop) setShopId(d.shop.id);
+    if (d.shop) { setShopId(d.shop.id); setTab("shop"); }
     setBusy(false);
   }
 
@@ -73,113 +72,102 @@ export default function AdminApp() {
 
   const shop = data.shops.find((s) => s.id === shopId);
   const shopOrders = data.orders.filter((o) => o.shopId === shopId);
+  const shopBills = data.bills.filter((b) => b.shopId === shopId);
+  const shopProducts = data.products.filter((p) => p.shopId === shopId);
+  const shopCats = data.categories.filter((c) => c.shopId === shopId);
   const pendingCount = shopOrders.filter((o) => o.status === "pending").length;
+  const openBills = shopBills.filter((b) => b.status === "open").length;
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Sidebar: shops */}
-      <aside className="lg:w-64 shrink-0 glass-strong border-b lg:border-b-0 lg:border-r border-white/6 p-4 flex flex-col">
-        <div className="flex items-center justify-between mb-5">
-          <span className="font-bold text-gradient-gold">{data.settings.siteName}</span>
-          <button onClick={logout} title="ออกจากระบบ" className="text-bear-subtle hover:text-bear-danger">
-            <LogOut size={18} />
-          </button>
+    <div className="min-h-screen max-w-3xl mx-auto px-4 py-4">
+      {/* Top bar */}
+      <header className="flex items-center justify-between gap-2 mb-3">
+        <span className="font-bold text-lg text-gradient-gold truncate">{data.settings.siteName}</span>
+        <div className="flex items-center gap-3 text-bear-subtle shrink-0">
+          <Link href="/" title="ดูหน้าเว็บ" className="hover:text-bear-gold"><Home size={18} /></Link>
+          <button onClick={() => setSiteOpen((v) => !v)} title="ตั้งค่าเว็บ" className="hover:text-bear-gold"><Cog size={18} /></button>
+          <button onClick={logout} title="ออกจากระบบ" className="hover:text-bear-danger"><LogOut size={18} /></button>
         </div>
+      </header>
 
-        <p className="text-[10px] font-semibold text-bear-subtle uppercase tracking-widest mb-2">ร้านย่อย</p>
-        <div className="space-y-1 flex-1">
-          {data.shops.map((s) => {
-            const unseen = data.orders.filter((o) => o.shopId === s.id && o.status === "pending").length;
-            return (
-              <button
-                key={s.id}
-                onClick={() => setShopId(s.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-left transition-colors ${
-                  s.id === shopId ? "bg-white/5 text-white" : "text-bear-text/70 hover:bg-white/4"
-                }`}
-              >
-                <Store size={16} className={s.id === shopId ? "text-bear-gold" : ""} />
-                <span className="flex-1 truncate">{s.name}</span>
-                {!s.active && <span className="text-[10px] text-bear-subtle">ปิด</span>}
-                {unseen > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-bear-gold text-black text-[10px] font-bold flex items-center justify-center">
-                    {unseen}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {siteOpen && <SiteSettings settings={data.settings} onSaved={() => { setSiteOpen(false); reload(); }} onClose={() => setSiteOpen(false)} />}
 
+      {/* Shop selector — horizontal chips */}
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+        {data.shops.map((s) => {
+          const unseen = data.orders.filter((o) => o.shopId === s.id && o.status === "pending").length;
+          return (
+            <button
+              key={s.id}
+              onClick={() => setShopId(s.id)}
+              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-colors ${
+                s.id === shopId ? "bg-bear-gold text-black" : "glass text-bear-text/70 hover:text-white"
+              }`}
+            >
+              <Store size={15} />
+              {s.name}
+              {!s.active && <span className="text-[10px] opacity-70">(ปิด)</span>}
+              {unseen > 0 && (
+                <span className={`w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center ${s.id === shopId ? "bg-black/20" : "bg-bear-gold text-black"}`}>
+                  {unseen}
+                </span>
+              )}
+            </button>
+          );
+        })}
         <button
           onClick={addShop}
           disabled={busy}
-          className="mt-3 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-bear-gold/30 text-bear-gold text-sm font-semibold hover:bg-bear-gold/10"
+          className="shrink-0 flex items-center gap-1 px-3.5 py-2 rounded-full text-sm font-semibold border border-bear-gold/40 text-bear-gold hover:bg-bear-gold/10"
         >
           <Plus size={15} /> เพิ่มร้าน
         </button>
-        <SiteSettings settings={data.settings} onSaved={reload} />
-        <Link href="/" className="mt-2 flex items-center gap-1.5 text-xs text-bear-subtle hover:text-bear-gold justify-center">
-          <Home size={13} /> ดูหน้าเว็บ
-        </Link>
-      </aside>
+      </div>
 
-      {/* Main */}
-      <main className="flex-1 p-5 sm:p-8 max-w-4xl">
-        {!shop ? (
-          <p className="text-bear-subtle">ยังไม่มีร้าน — กด “เพิ่มร้าน” เพื่อเริ่มต้น</p>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h1 className="text-2xl font-bold">{shop.name}</h1>
-                <a
-                  href={`/shop/${shop.slug}`}
-                  target="_blank"
-                  className="text-xs text-bear-gold inline-flex items-center gap-1 mt-0.5"
-                >
-                  /shop/{shop.slug} <ExternalLink size={11} />
-                </a>
-              </div>
-            </div>
+      {!shop ? (
+        <p className="text-bear-subtle text-sm">ยังไม่มีร้าน — กด “เพิ่มร้าน” เพื่อเริ่มต้น</p>
+      ) : (
+        <>
+          {/* Shop header */}
+          <div className="mb-3">
+            <h1 className="text-xl font-bold">{shop.name}</h1>
+            <a href={`/shop/${shop.slug}`} target="_blank" className="text-xs text-bear-gold inline-flex items-center gap-1">
+              /shop/{shop.slug} <ExternalLink size={11} />
+            </a>
+          </div>
 
-            {/* Tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-1 mb-6 border-b border-white/6">
-              <TabBtn active={tab === "orders"} onClick={() => setTab("orders")} icon={<Receipt size={15} />}>
-                ออเดอร์ {pendingCount > 0 && <Badge>{pendingCount}</Badge>}
-              </TabBtn>
-              <TabBtn active={tab === "products"} onClick={() => setTab("products")} icon={<Package size={15} />}>
-                สินค้า & สต็อก
-              </TabBtn>
-              <TabBtn active={tab === "categories"} onClick={() => setTab("categories")} icon={<Tag size={15} />}>
-                หมวดหมู่
-              </TabBtn>
-              <TabBtn active={tab === "shop"} onClick={() => setTab("shop")} icon={<Cog size={15} />}>
-                ตั้งค่าร้าน
-              </TabBtn>
-            </div>
+          {/* Tabs */}
+          <div className="flex gap-1 overflow-x-auto pb-1 mb-5 border-b border-white/6">
+            <TabBtn active={tab === "orders"} onClick={() => setTab("orders")} icon={<Receipt size={15} />}>
+              ออเดอร์ {pendingCount > 0 && <Badge>{pendingCount}</Badge>}
+            </TabBtn>
+            <TabBtn active={tab === "bills"} onClick={() => setTab("bills")} icon={<FileText size={15} />}>
+              บิล {openBills > 0 && <Badge>{openBills}</Badge>}
+            </TabBtn>
+            <TabBtn active={tab === "products"} onClick={() => setTab("products")} icon={<Package size={15} />}>
+              สินค้า
+            </TabBtn>
+            <TabBtn active={tab === "categories"} onClick={() => setTab("categories")} icon={<Tag size={15} />}>
+              หมวดหมู่
+            </TabBtn>
+            <TabBtn active={tab === "shop"} onClick={() => setTab("shop")} icon={<Cog size={15} />}>
+              ตั้งค่าร้าน
+            </TabBtn>
+          </div>
 
-            {tab === "orders" && <OrdersTab orders={shopOrders} onChange={reload} />}
-            {tab === "products" && (
-              <ProductsTab
-                shop={shop}
-                categories={data.categories.filter((c) => c.shopId === shop.id)}
-                products={data.products.filter((p) => p.shopId === shop.id)}
-                onChange={reload}
-              />
-            )}
-            {tab === "categories" && (
-              <CategoriesTab
-                shop={shop}
-                categories={data.categories.filter((c) => c.shopId === shop.id)}
-                products={data.products.filter((p) => p.shopId === shop.id)}
-                onChange={reload}
-              />
-            )}
-            {tab === "shop" && <ShopSettingsTab shop={shop} onChange={reload} onDeleted={() => { setShopId(""); reload(); }} />}
-          </>
-        )}
-      </main>
+          {tab === "orders" && <OrdersTab orders={shopOrders} onChange={reload} />}
+          {tab === "bills" && <BillsTab shop={shop} products={shopProducts} bills={shopBills} onChange={reload} />}
+          {tab === "products" && (
+            <ProductsTab shop={shop} categories={shopCats} products={shopProducts} onChange={reload} />
+          )}
+          {tab === "categories" && (
+            <CategoriesTab shop={shop} categories={shopCats} products={shopProducts} onChange={reload} />
+          )}
+          {tab === "shop" && (
+            <ShopSettingsTab shop={shop} onChange={reload} onDeleted={() => { setShopId(""); reload(); }} />
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -189,7 +177,7 @@ function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+      className={`shrink-0 flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
         active ? "border-bear-gold text-bear-gold" : "border-transparent text-bear-text/60 hover:text-white"
       }`}
     >
@@ -198,15 +186,25 @@ function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick:
   );
 }
 function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="ml-1 px-1.5 py-0.5 rounded-full bg-bear-gold text-black text-[10px] font-bold">{children}</span>;
+  return <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-bear-gold text-black text-[10px] font-bold">{children}</span>;
 }
 function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`bg-black/40 border border-white/8 rounded-lg px-3 py-2 text-sm focus:border-bear-gold/50 focus:outline-none ${props.className || ""}`} />;
 }
+function Empty({ children }: { children: React.ReactNode }) {
+  return <div className="glass rounded-2xl p-10 text-center text-bear-subtle text-sm">{children}</div>;
+}
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-xs text-bear-subtle">{label}</label>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
 
 // ───────── Site settings ─────────
-function SiteSettings({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
-  const [open, setOpen] = useState(false);
+function SiteSettings({ settings, onSaved, onClose }: { settings: Settings; onSaved: () => void; onClose: () => void }) {
   const [siteName, setSiteName] = useState(settings.siteName);
   const [siteTagline, setSiteTagline] = useState(settings.siteTagline);
 
@@ -216,25 +214,17 @@ function SiteSettings({ settings, onSaved }: { settings: Settings; onSaved: () =
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ siteName, siteTagline }),
     });
-    setOpen(false);
     onSaved();
   }
 
-  if (!open)
-    return (
-      <button onClick={() => setOpen(true)} className="mt-2 flex items-center gap-1.5 text-xs text-bear-subtle hover:text-bear-gold justify-center">
-        <Cog size={13} /> ตั้งค่าเว็บ
-      </button>
-    );
-
   return (
-    <div className="mt-3 glass rounded-xl p-3 space-y-2">
-      <p className="text-xs font-semibold text-bear-subtle">ตั้งค่าเว็บ</p>
+    <div className="glass rounded-xl p-4 mb-4 space-y-2">
+      <p className="text-xs font-semibold text-bear-gold">ตั้งค่าเว็บ (หน้าแรก)</p>
       <Input value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder="ชื่อเว็บ" className="w-full" />
       <Input value={siteTagline} onChange={(e) => setSiteTagline(e.target.value)} placeholder="คำโปรย" className="w-full" />
       <div className="flex gap-2">
-        <button onClick={save} className="flex-1 bg-bear-gold text-black text-xs font-bold py-1.5 rounded-lg">บันทึก</button>
-        <button onClick={() => setOpen(false)} className="px-3 text-xs text-bear-subtle">ยกเลิก</button>
+        <button onClick={save} className="flex-1 bg-bear-gold text-black text-sm font-bold py-2 rounded-lg">บันทึก</button>
+        <button onClick={onClose} className="px-4 text-sm text-bear-subtle">ปิด</button>
       </div>
     </div>
   );
@@ -298,12 +288,8 @@ function OrdersTab({ orders, onChange }: { orders: Order[]; onChange: () => void
               <p className="text-xs text-bear-subtle mb-1">สลิปการโอน</p>
               {o.slip ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={mediaUrl(o.slip)}
-                  alt="slip"
-                  onClick={() => setViewSlip(mediaUrl(o.slip))}
-                  className="max-h-48 rounded-lg cursor-zoom-in bg-black/40 object-contain"
-                />
+                <img src={mediaUrl(o.slip)} alt="slip" onClick={() => setViewSlip(mediaUrl(o.slip))}
+                  className="max-h-48 rounded-lg cursor-zoom-in bg-black/40 object-contain" />
               ) : (
                 <p className="text-xs text-bear-subtle">— ไม่มีสลิป —</p>
               )}
@@ -320,6 +306,197 @@ function OrdersTab({ orders, onChange }: { orders: Order[]; onChange: () => void
       )}
     </div>
   );
+}
+
+// ───────── Bills ─────────
+function BillsTab({ shop, products, bills, onChange }: {
+  shop: Shop; products: Product[]; bills: Bill[]; onChange: () => void;
+}) {
+  const [creating, setCreating] = useState(false);
+  const [qty, setQty] = useState<Record<string, number>>({});
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [newLink, setNewLink] = useState<string>("");
+  const [copied, setCopied] = useState("");
+
+  const lines = useMemo(
+    () => products.map((p) => ({ p, q: qty[p.id] || 0 })).filter((l) => l.q > 0),
+    [qty, products]
+  );
+  const total = lines.reduce((s, l) => s + l.p.price * l.q, 0);
+
+  function origin() {
+    return typeof window !== "undefined" ? window.location.origin : "";
+  }
+  function billUrl(code: string) {
+    return `${origin()}/bill/${code}`;
+  }
+  async function copy(text: string, key: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      setTimeout(() => setCopied(""), 1500);
+    } catch {
+      window.prompt("คัดลอกลิงก์นี้:", text);
+    }
+  }
+
+  async function create() {
+    if (lines.length === 0) return;
+    setSaving(true);
+    const res = await fetch("/api/admin/bills", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shopId: shop.id,
+        note,
+        items: lines.map((l) => ({ productId: l.p.id, qty: l.q })),
+      }),
+    });
+    const d = await res.json();
+    setSaving(false);
+    if (d.bill) {
+      setNewLink(billUrl(d.bill.code));
+      setQty({});
+      setNote("");
+      setCreating(false);
+      onChange();
+    }
+  }
+
+  async function cancel(id: string) {
+    if (!confirm("ยกเลิกบิลนี้?")) return;
+    await fetch(`/api/admin/bills/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "cancelled" }),
+    });
+    onChange();
+  }
+  async function del(id: string) {
+    if (!confirm("ลบบิลนี้ออกจากรายการ?")) return;
+    await fetch(`/api/admin/bills/${id}`, { method: "DELETE" });
+    onChange();
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-bear-subtle">
+        สร้างบิลจากสินค้าในร้าน แล้วส่ง “ลิงก์” ให้ลูกค้าเปิดกรอกที่อยู่ + แนบสลิปเอง สต็อกจะตัดตอนลูกค้ายืนยัน
+      </p>
+
+      {/* success link banner */}
+      {newLink && (
+        <div className="glass rounded-2xl p-4 border border-bear-gold/30">
+          <p className="text-sm font-semibold text-bear-gold mb-2">สร้างบิลแล้ว! ส่งลิงก์นี้ให้ลูกค้า 👇</p>
+          <div className="flex gap-2 items-center">
+            <input readOnly value={newLink} className="flex-1 bg-black/40 border border-white/8 rounded-lg px-3 py-2 text-xs" />
+            <button onClick={() => copy(newLink, "new")} className="bg-bear-gold text-black text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1">
+              <Copy size={13} /> {copied === "new" ? "คัดลอกแล้ว" : "คัดลอก"}
+            </button>
+          </div>
+          <button onClick={() => setNewLink("")} className="text-xs text-bear-subtle mt-2">ปิด</button>
+        </div>
+      )}
+
+      {/* create form */}
+      {creating ? (
+        <div className="glass rounded-2xl p-4 space-y-3">
+          <p className="font-semibold text-sm">เลือกสินค้าใส่บิล</p>
+          {products.length === 0 ? (
+            <p className="text-sm text-bear-subtle">ยังไม่มีสินค้าในร้านนี้ — เพิ่มสินค้าก่อน</p>
+          ) : (
+            <div className="space-y-2">
+              {products.map((p) => (
+                <div key={p.id} className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">{p.name}</p>
+                    <p className="text-xs text-bear-subtle">{baht(p.price)} · เหลือ {p.stock}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setQty({ ...qty, [p.id]: Math.max(0, (qty[p.id] || 0) - 1) })}
+                      className="w-7 h-7 rounded bg-white/5 hover:bg-white/10">−</button>
+                    <span className="w-6 text-center text-sm font-bold">{qty[p.id] || 0}</span>
+                    <button onClick={() => setQty({ ...qty, [p.id]: Math.min(p.stock, (qty[p.id] || 0) + 1) })}
+                      disabled={(qty[p.id] || 0) >= p.stock}
+                      className="w-7 h-7 rounded bg-white/5 hover:bg-white/10 disabled:opacity-30">+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="หมายเหตุ เช่น ชื่อลูกค้า/ช่องทาง (ไม่บังคับ)" className="w-full" />
+          <div className="flex items-center justify-between">
+            <span className="font-bold">รวม {baht(total)}</span>
+            <div className="flex gap-2">
+              <button onClick={() => { setCreating(false); setQty({}); }} className="px-4 text-sm text-bear-subtle">ยกเลิก</button>
+              <button onClick={create} disabled={saving || lines.length === 0}
+                className="bg-bear-gold text-black text-sm font-bold px-5 py-2 rounded-lg disabled:opacity-40">
+                {saving ? "กำลังสร้าง..." : "สร้างบิล"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setCreating(true)}
+          className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl border border-bear-gold/30 text-bear-gold text-sm font-semibold hover:bg-bear-gold/10">
+          <Plus size={16} /> สร้างบิลใหม่
+        </button>
+      )}
+
+      {/* bills list */}
+      {bills.length === 0 ? (
+        <Empty>ยังไม่มีบิล</Empty>
+      ) : (
+        <div className="space-y-3">
+          {bills.map((b) => (
+            <div key={b.id} className="glass rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-sm text-bear-gold">บิล #{b.code}</span>
+                <StatusPill status={b.status} orderCode={b.orderCode} />
+              </div>
+              {b.note && <p className="text-xs text-bear-subtle mt-1">{b.note}</p>}
+              <div className="mt-2 space-y-0.5">
+                {b.items.map((it, i) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span>{it.name} × {it.qty}</span><span>{baht(it.price * it.qty)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between font-bold text-sm pt-1 border-t border-white/6 mt-1">
+                  <span>รวม</span><span className="text-bear-gold">{baht(b.total)}</span>
+                </div>
+              </div>
+
+              {b.status === "open" && (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => copy(billUrl(b.code), b.id)}
+                    className="flex-1 bg-bear-gold text-black text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1">
+                    <Copy size={13} /> {copied === b.id ? "คัดลอกลิงก์แล้ว" : "คัดลอกลิงก์"}
+                  </button>
+                  <button onClick={() => cancel(b.id)} className="px-3 text-xs text-bear-danger">ยกเลิก</button>
+                </div>
+              )}
+              {b.status !== "open" && (
+                <button onClick={() => del(b.id)} className="text-xs text-bear-subtle hover:text-bear-danger mt-2 inline-flex items-center gap-1">
+                  <Trash2 size={12} /> ลบออกจากรายการ
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatusPill({ status, orderCode }: { status: string; orderCode: string }) {
+  const map: Record<string, { t: string; c: string }> = {
+    open: { t: "รอลูกค้ากรอก", c: "text-bear-gold border-bear-gold/40" },
+    completed: { t: `เป็นออเดอร์ ${orderCode}`, c: "text-green-400 border-green-400/40" },
+    cancelled: { t: "ยกเลิกแล้ว", c: "text-bear-subtle border-white/15" },
+  };
+  const s = map[status] || map.open;
+  return <span className={`text-[11px] px-2 py-0.5 rounded-full border ${s.c}`}>{s.t}</span>;
 }
 
 // ───────── Products ─────────
@@ -393,10 +570,8 @@ function ProductsTab({ shop, categories, products, onChange }: {
       {adding ? (
         <ProductForm shop={shop} categories={categories} onDone={() => { setAdding(false); onChange(); }} onCancel={() => setAdding(false)} />
       ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl border border-bear-gold/30 text-bear-gold text-sm font-semibold hover:bg-bear-gold/10"
-        >
+        <button onClick={() => setAdding(true)}
+          className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl border border-bear-gold/30 text-bear-gold text-sm font-semibold hover:bg-bear-gold/10">
           <Plus size={16} /> เพิ่มสินค้า
         </button>
       )}
@@ -575,7 +750,7 @@ function ShopSettingsTab({ shop, onChange, onDeleted }: { shop: Shop; onChange: 
   }
 
   return (
-    <div className="glass rounded-2xl p-5 space-y-4 max-w-lg">
+    <div className="glass rounded-2xl p-5 space-y-4">
       <Row label="ชื่อร้าน">
         <Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="w-full" />
       </Row>
@@ -588,6 +763,7 @@ function ShopSettingsTab({ shop, onChange, onDeleted }: { shop: Shop; onChange: 
         <Row label="พร้อมเพย์ (เบอร์/เลขบัตร ปชช./e-Wallet)">
           <Input value={f.promptpayId} onChange={(e) => setF({ ...f, promptpayId: e.target.value })} placeholder="0812345678" className="w-full" />
         </Row>
+        <div className="mt-3" />
         <Row label="ชื่อบัญชี (แสดงให้ลูกค้า)">
           <Input value={f.promptpayName} onChange={(e) => setF({ ...f, promptpayName: e.target.value })} className="w-full" />
         </Row>
@@ -609,16 +785,4 @@ function ShopSettingsTab({ shop, onChange, onDeleted }: { shop: Shop; onChange: 
       </div>
     </div>
   );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-xs text-bear-subtle">{label}</label>
-      <div className="mt-1">{children}</div>
-    </div>
-  );
-}
-function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="glass rounded-2xl p-10 text-center text-bear-subtle text-sm">{children}</div>;
 }

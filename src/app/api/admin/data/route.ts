@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
-import { getShops, getCategories, getProducts, getOrders, getSettings } from "@/lib/store";
+import { getShops, getCategories, getProducts, getOrders, getBills, getSettings } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -8,13 +8,14 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   if (!isAdmin()) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const [shops, categories, products, orders, settings] = await Promise.all([
+  const [shops, categories, products, orders, bills, settings] = await Promise.all([
     getShops(),
     getCategories(),
     getProducts(),
     getOrders(),
+    getBills(),
     getSettings(),
   ]);
 
-  return NextResponse.json({ shops, categories, products, orders, settings });
+  return NextResponse.json({ shops, categories, products, orders, bills, settings });
 }
