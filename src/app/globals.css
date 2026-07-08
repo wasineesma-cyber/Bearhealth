@@ -13,16 +13,6 @@ html, body {
   min-height: 100%;
 }
 
-/* ── Pure black background, no glow ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: #060608;
-  pointer-events: none;
-  z-index: 0;
-}
-
 /* ── Glass card — pure dark, no color tint ── */
 .glass {
   background: rgba(255,255,255,0.03);
