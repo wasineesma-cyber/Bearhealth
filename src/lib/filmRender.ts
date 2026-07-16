@@ -93,6 +93,27 @@ export function renderFilm(
     ctx.restore();
   }
 
+  // 3b — soft dreamy highlight bloom (compact-camera glow)
+  if (preset.glow) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = preset.glow.alpha;
+    ctx.filter = `blur(${Math.max(4, Math.round(sw * 0.012))}px) brightness(1.5)`;
+    if (mirror) {
+      ctx.translate(sw, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(source, 0, 0, sw, sh);
+    ctx.restore();
+    // gentle warm/white wash to seat the bloom
+    ctx.save();
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.globalAlpha = preset.glow.alpha * 0.5;
+    ctx.fillStyle = preset.glow.color;
+    ctx.fillRect(0, 0, sw, sh);
+    ctx.restore();
+  }
+
   // 4 — grain
   if (preset.grain > 0) {
     const grain = makeGrain(sw, sh, preset.grain);

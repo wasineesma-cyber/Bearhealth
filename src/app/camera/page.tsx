@@ -204,6 +204,15 @@ export default function CameraPage() {
                   }}
                 />
               )}
+              {preset.glow && (
+                <div
+                  className="pointer-events-none absolute inset-0 mix-blend-screen"
+                  style={{
+                    background: `radial-gradient(120% 100% at 50% 45%, ${preset.glow.color}, transparent 70%)`,
+                    opacity: preset.glow.alpha * 0.6,
+                  }}
+                />
+              )}
               {preset.grain > 0 && (
                 <div
                   className="pointer-events-none absolute inset-0 mix-blend-overlay"
@@ -346,40 +355,47 @@ export default function CameraPage() {
         </div>
       </div>
 
-      {/* film-stock picker */}
-      <div className="mt-5">
-        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-widest text-bear-subtle">
-          ฟิล์ม / Film Stock
-        </p>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {FILM_PRESETS.map((p) => {
-            const active = p.id === presetId;
-            return (
-              <button
-                key={p.id}
-                onClick={() => setPresetId(p.id)}
-                className={clsx(
-                  "flex shrink-0 flex-col items-start gap-1 rounded-2xl border px-3.5 py-2.5 text-left transition-all",
-                  active
-                    ? "border-bear-gold/50 bg-bear-gold/10"
-                    : "border-white/8 bg-white/3 hover:border-white/20",
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <span
-                    className="h-3 w-3 rounded-full ring-1 ring-white/20"
-                    style={{ background: p.swatch }}
-                  />
-                  <span className={clsx("text-sm font-semibold", active ? "text-white" : "text-bear-text")}>
-                    {p.name}
+      {/* preset picker — grouped by category */}
+      {(
+        [
+          { cat: "camera" as const, label: "กล้อง / Cameras" },
+          { cat: "stock" as const, label: "ฟิล์ม / Film Stock" },
+        ]
+      ).map(({ cat, label }) => (
+        <div key={cat} className="mt-5">
+          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-widest text-bear-subtle">
+            {label}
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {FILM_PRESETS.filter((p) => p.category === cat).map((p) => {
+              const active = p.id === presetId;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setPresetId(p.id)}
+                  className={clsx(
+                    "flex shrink-0 flex-col items-start gap-1 rounded-2xl border px-3.5 py-2.5 text-left transition-all",
+                    active
+                      ? "border-bear-gold/50 bg-bear-gold/10"
+                      : "border-white/8 bg-white/3 hover:border-white/20",
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="h-3 w-3 rounded-full ring-1 ring-white/20"
+                      style={{ background: p.swatch }}
+                    />
+                    <span className={clsx("text-sm font-semibold", active ? "text-white" : "text-bear-text")}>
+                      {p.name}
+                    </span>
                   </span>
-                </span>
-                <span className="text-[11px] text-bear-subtle">{p.vibe}</span>
-              </button>
-            );
-          })}
+                  <span className="text-[11px] text-bear-subtle">{p.vibe}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ))}
 
       {/* roll / gallery */}
       {shots.length > 0 && (
