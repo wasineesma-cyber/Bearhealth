@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Moon, Zap, TrendingUp,
-  Heart, Activity, Settings, Watch, Languages, Menu, X,
+  Heart, Activity, Settings, Watch, Languages, Menu, X, Aperture,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useLang } from "@/hooks/useLang";
@@ -16,6 +16,7 @@ const NAV = [
   { href: "/sleep",     icon: Moon,             key: "sleep"     as const },
   { href: "/activity",  icon: Activity,         key: "activity"  as const },
   { href: "/trends",    icon: TrendingUp,       key: "trends"    as const },
+  { href: "/camera",    icon: Aperture,         key: "camera"    as const },
 ];
 
 export default function Sidebar() {

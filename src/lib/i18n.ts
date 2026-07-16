@@ -5,6 +5,7 @@ export const th = {
     sleep: "การนอนหลับ",
     activity: "กิจกรรม",
     trends: "แนวโน้ม",
+    camera: "กล้องฟิล์ม",
   },
   dashboard: {
     greeting: "สวัสดีตอนเช้า",
@@ -132,6 +133,7 @@ export const en = {
     sleep: "Sleep",
     activity: "Activity",
     trends: "Trends",
+    camera: "Film Camera",
   },
   dashboard: {
     greeting: "Good morning",
